@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e0e0e">
+<title>Big Seven+</title>
+<link rel="manifest" href="data:application/json,{%22name%22:%22Big+Seven+%2B%22,%22short_name%22:%22Big7%2B%22,%22start_url%22:%22.%2F%22,%22display%22:%22standalone%22,%22background_color%22:%22%230e0e0e%22,%22theme_color%22:%22%230e0e0e%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,%3Csvg+xmlns='http://www.w3.org/2000/svg'+viewBox='0+0+512+512'%3E%3Crect+width='512'+height='512'+rx='80'+fill='%230e0e0e'/%3E%3Ctext+x='256'+y='340'+text-anchor='middle'+font-size='280'+fill='%23c8f060'%3E7%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22}]}">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #0e0e0e; --surface: #1a1a1a; --surface2: #242424;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #f0ede8; --text2: #8a8782; --text3: #4a4845;
+    --accent: #c8f060; --accent-dim: rgba(200,240,96,0.12);
+    --danger: #ff5c5c; --warm: #f0a050; --radius: 16px;
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden; -webkit-font-smoothing: antialiased; }
+  #app { height: 100%; height: 100dvh; display: flex; flex-direction: column; max-width: 430px; margin: 0 auto; position: relative; overflow: hidden; }
+
+  /* SCREENS */
+  .screen { display: none; flex-direction: column; height: 100%; }
+  .screen.active { display: flex; }
+
+  /* HOME */
+  #home { justify-content: space-between; }
+  .home-header { padding: 56px 28px 24px; border-bottom: 1px solid var(--border); }
+  .home-header h1 { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+  .home-header h2 { font-size: 32px; font-weight: 300; line-height: 1.15; letter-spacing: -0.5px; }
+  .home-header .subtitle { margin-top: 8px; font-size: 14px; color: var(--text2); font-weight: 300; }
+  .exercise-list { flex: 1; overflow-y: auto; padding: 16px 20px; -webkit-overflow-scrolling: touch; }
+  .list-section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); padding: 12px 8px 8px; }
+  .list-item { display: flex; align-items: center; gap: 14px; padding: 13px 12px; border-radius: 12px; margin-bottom: 4px; transition: background .15s; }
+  .list-item:active { background: var(--surface); }
+  .list-num { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text3); width: 18px; text-align: right; flex-shrink: 0; }
+  .list-name { flex: 1; font-size: 15px; color: var(--text); line-height: 1.2; }
+  .list-badge { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; flex-shrink: 0; }
+  .b-core  { background: rgba(160,140,255,0.15); color: #a08cff; }
+  .b-lower { background: rgba(80,200,140,0.15);  color: #50c88c; }
+  .b-upper { background: rgba(255,160,80,0.15);  color: #ffa050; }
+  .b-pull  { background: rgba(80,160,255,0.15);  color: #50a0ff; }
+  .b-hinge { background: rgba(255,200,80,0.15);  color: #ffc850; }
+  .home-footer { padding: 20px 28px 40px; border-top: 1px solid var(--border); }
+  .start-btn { width: 100%; background: var(--accent); color: #0e0e0e; border: none; border-radius: var(--radius); padding: 18px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500; cursor: pointer; transition: opacity .15s, transform .1s; }
+  .start-btn:active { opacity: .85; transform: scale(0.98); }
+
+  /* WORKOUT */
+  #workout { position: relative; }
+  .workout-topbar { display: flex; align-items: center; justify-content: space-between; padding: 52px 24px 16px; flex-shrink: 0; }
+  .progress-track { flex: 1; height: 3px; background: var(--surface2); border-radius: 2px; margin: 0 16px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s ease; }
+  .top-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text2); border-radius: 10px; padding: 8px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; flex-shrink: 0; }
+  .exercise-stage { flex: 1; display: flex; flex-direction: column; padding: 0 24px; overflow: hidden; }
+  .ex-phase { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; flex-shrink: 0; }
+  .ex-title { font-size: 26px; font-weight: 300; line-height: 1.2; letter-spacing: -0.3px; margin-bottom: 4px; flex-shrink: 0; }
+  .ex-meta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); margin-bottom: 12px; flex-shrink: 0; }
+
+  /* DIAGRAM */
+  .ex-diagram { flex-shrink: 0; margin-bottom: 10px; border-radius: 12px; overflow: hidden; background: var(--surface); border: 1px solid var(--border); }
+  .ex-diagram svg { display: block; width: 100%; height: auto; }
+
+  /* INSTRUCTION */
+  .ex-scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .ex-instruction { font-size: 14px; color: var(--text2); line-height: 1.65; font-weight: 300; white-space: pre-line; padding-bottom: 8px; }
+
+  /* SET TRACKER */
+  .set-tracker { flex-shrink: 0; padding: 12px 0 6px; }
+  .set-tracker-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+  .set-dots { display: flex; gap: 10px; }
+  .set-dot { width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text3); transition: all .2s; flex-shrink: 0; }
+  .set-dot.done { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .set-dot.active { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+
+  /* PLANK TIMER */
+  .plank-timer-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 0; }
+  .timer-ring { position: relative; width: 180px; height: 180px; margin-bottom: 16px; }
+  .timer-ring svg { transform: rotate(-90deg); }
+  .timer-ring-bg { fill: none; stroke: var(--surface2); stroke-width: 6; }
+  .timer-ring-fill { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset .9s linear, stroke .3s; }
+  .timer-ring-fill.danger { stroke: var(--danger); }
+  .timer-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .timer-num { font-family: 'DM Mono', monospace; font-size: 48px; font-weight: 500; color: var(--text); line-height: 1; }
+  .timer-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--text3); margin-top: 4px; }
+  .timer-controls { display: flex; gap: 10px; margin-bottom: 12px; }
+  .timer-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 12px; padding: 12px 24px; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; }
+  .timer-btn.primary { background: var(--accent); color: #0e0e0e; border-color: var(--accent); font-weight: 500; }
+  .timer-btn:active { opacity: .8; }
+  .timer-target-row { display: flex; gap: 8px; }
+  .timer-target { font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 12px; border-radius: 20px; background: var(--surface2); color: var(--text3); cursor: pointer; border: 1px solid transparent; transition: all .15s; }
+  .timer-target.selected { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+  /* ACTION ROW */
+  .action-row { display: flex; gap: 10px; padding: 12px 24px 36px; flex-shrink: 0; }
+  .action-btn { flex: 1; border: none; border-radius: var(--radius); padding: 16px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; transition: opacity .15s, transform .1s; }
+  .action-btn:active { opacity: .8; transform: scale(0.98); }
+  .action-btn.primary { background: var(--accent); color: #0e0e0e; }
+  .action-btn.secondary { background: var(--surface); color: var(--text2); border: 1px solid var(--border); }
+
+  /* REST OVERLAY */
+  .rest-overlay { position: absolute; inset: 0; background: var(--bg); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; padding: 40px 28px; }
+  .rest-overlay.active { display: flex; }
+  .rest-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--text3); margin-bottom: 20px; }
+  .rest-ring { position: relative; margin-bottom: 8px; }
+  .rest-ring svg { transform: rotate(-90deg); }
+  .rest-ring-bg { fill: none; stroke: var(--surface2); stroke-width: 4; }
+  .rest-ring-fill { fill: none; stroke: var(--warm); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset .9s linear; }
+  .rest-num { font-family: 'DM Mono', monospace; font-size: 72px; font-weight: 500; color: var(--text); line-height: 1; }
+  .rest-sub { font-size: 14px; color: var(--text2); font-weight: 300; margin-bottom: 32px; }
+  .rest-next { font-size: 11px; color: var(--text3); margin-bottom: 6px; font-family: 'DM Mono', monospace; letter-spacing: .1em; text-transform: uppercase; }
+  .rest-next-name { font-size: 20px; color: var(--text); font-weight: 300; margin-bottom: 36px; text-align: center; }
+  .rest-skip { background: var(--surface); border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius); padding: 14px 40px; font-family: 'DM Sans', sans-serif; font-size: 15px; cursor: pointer; }
+
+  /* DONE */
+  #done { align-items: center; justify-content: center; padding: 40px 28px; text-align: center; }
+  .done-icon { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-dim); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 28px; }
+  .done-title { font-size: 32px; font-weight: 300; margin-bottom: 10px; letter-spacing: -0.3px; }
+  .done-sub { font-size: 15px; color: var(--text2); font-weight: 300; line-height: 1.6; margin-bottom: 40px; }
+  .done-stats { display: flex; gap: 16px; margin-bottom: 40px; width: 100%; }
+  .done-stat { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 12px; }
+  .done-stat-num { font-family: 'DM Mono', monospace; font-size: 24px; color: var(--accent); margin-bottom: 4px; }
+  .done-stat-label { font-size: 11px; color: var(--text3); font-weight: 300; }
+  .done-home-btn { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius); padding: 18px; font-family: 'DM Sans', sans-serif; font-size: 16px; cursor: pointer; }
+
+  /* SVG diagram colors */
+  .fig-body { fill: #2a2a2a; stroke: #444; stroke-width: 1.5; }
+  .fig-bone { fill: none; stroke: #c8f060; stroke-width: 2; stroke-linecap: round; }
+  .fig-joint { fill: #c8f060; }
+  .fig-arrow { fill: none; stroke: #f0a050; stroke-width: 2; stroke-linecap: round; marker-end: url(#arr); }
+  .fig-label { font-family: 'DM Mono', monospace; font-size: 11px; fill: #8a8782; }
+  .fig-label-good { font-family: 'DM Mono', monospace; font-size: 11px; fill: #c8f060; font-weight: 500; }
+  .fig-label-bad  { font-family: 'DM Mono', monospace; font-size: 11px; fill: #ff5c5c; font-weight: 500; }
+  .fig-bad  { fill: none; stroke: #ff5c5c; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 4 3; }
+  .fig-good { fill: none; stroke: #c8f060; stroke-width: 2; stroke-linecap: round; }
+  .fig-weight { fill: #333; stroke: #555; stroke-width: 1; }
+  .fig-weight-grip { fill: #c8f060; }
+  .fig-bg { fill: #1a1a1a; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <div id="home" class="screen active">
+    <div class="home-header">
+      <h1>Big Seven+</h1>
+      <h2>Home<br>Strength</h2>
+      <p class="subtitle">2× per week · ~35 min · 3 sets</p>
+    </div>
+    <div class="exercise-list">
+      <div class="list-section-label">Warm-up · 1 round</div>
+      <div class="list-item"><span class="list-num">1</span><span class="list-name">Dead bug</span><span class="list-badge b-core">Core</span></div>
+      <div class="list-item"><span class="list-num">2</span><span class="list-name">Bird-dog</span><span class="list-badge b-core">Core</span></div>
+      <div class="list-item"><span class="list-num">3</span><span class="list-name">Glute bridge</span><span class="list-badge b-lower">Lower</span></div>
+      <div class="list-section-label">Main · 3 sets × 8–12 reps</div>
+      <div class="list-item"><span class="list-num">4</span><span class="list-name">Romanian deadlift</span><span class="list-badge b-hinge">Hinge</span></div>
+      <div class="list-item"><span class="list-num">5</span><span class="list-name">Reverse lunge</span><span class="list-badge b-lower">Lower</span></div>
+      <div class="list-item"><span class="list-num">6</span><span class="list-name">Single-arm row</span><span class="list-badge b-pull">Pull</span></div>
+      <div class="list-item"><span class="list-num">7</span><span class="list-name">Push-up</span><span class="list-badge b-upper">Push</span></div>
+      <div class="list-item"><span class="list-num">8</span><span class="list-name">Shoulder press</span><span class="list-badge b-upper">Push</span></div>
+      <div class="list-item"><span class="list-num">9</span><span class="list-name">Plank</span><span class="list-badge b-core">Core</span></div>
+    </div>
+    <div class="home-footer">
+      <button class="start-btn" onclick="startWorkout()">Start Workout</button>
+    </div>
+  </div>
+
+  <!-- WORKOUT -->
+  <div id="workout" class="screen">
+    <div class="workout-topbar">
+      <button class="top-btn" onclick="goHome()">✕ End</button>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <span id="progressLabel" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);flex-shrink:0;"></span>
+    </div>
+    <div class="exercise-stage" id="exerciseStage"></div>
+    <div class="action-row" id="actionRow"></div>
+    <!-- Rest overlay -->
+    <div class="rest-overlay" id="restOverlay">
+      <div class="rest-label">Rest</div>
+      <div class="rest-ring">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle class="rest-ring-bg" cx="60" cy="60" r="52"/>
+          <circle class="rest-ring-fill" id="restArc" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-center">
+          <div class="rest-num" id="restNum">60</div>
+          <div class="timer-label">sec</div>
+        </div>
+      </div>
+      <div class="rest-sub">Breathe.</div>
+      <div class="rest-next">Up next</div>
+      <div class="rest-next-name" id="restNextName"></div>
+      <button class="rest-skip" onclick="skipRest()">Skip →</button>
+    </div>
+  </div>
+
+  <!-- DONE -->
+  <div id="done" class="screen">
+    <div class="done-icon">✓</div>
+    <div class="done-title">Session done.</div>
+    <div class="done-sub">Your back will thank you<br>in about two weeks.</div>
+    <div class="done-stats">
+      <div class="done-stat"><div class="done-stat-num" id="statSets">0</div><div class="done-stat-label">Sets</div></div>
+      <div class="done-stat"><div class="done-stat-num" id="statExercises">9</div><div class="done-stat-label">Exercises</div></div>
+      <div class="done-stat"><div class="done-stat-num" id="statTime">0</div><div class="done-stat-label">Min</div></div>
+    </div>
+    <button class="done-home-btn" onclick="goHome()">Back to overview</button>
+  </div>
+
+</div>
+<script>
+// ── DIAGRAMS ──────────────────────────────────────────────────────────────
+const DIAGRAMS = {
+  rdl: `<svg viewBox="0 0 340 160" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#f0a050" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+  <rect class="fig-bg" width="340" height="160" rx="0"/>
+  <!-- WRONG: squat (left) -->
+  <text class="fig-label-bad" x="12" y="18">✗ squat (wrong)</text>
+  <!-- torso upright -->
+  <line x1="60" y1="30" x2="60" y2="70" class="fig-bad"/>
+  <!-- hips down -->
+  <line x1="60" y1="70" x2="50" y2="100" class="fig-bad"/>
+  <line x1="60" y1="70" x2="70" y2="100" class="fig-bad"/>
+  <!-- shins vertical -->
+  <line x1="50" y1="100" x2="48" y2="135" class="fig-bad"/>
+  <line x1="70" y1="100" x2="72" y2="135" class="fig-bad"/>
+  <!-- head -->
+  <circle cx="60" cy="22" r="8" fill="none" stroke="#ff5c5c" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <!-- arms hanging down (weights near floor far from body) -->
+  <line x1="55" y1="50" x2="38" y2="100" class="fig-bad"/>
+  <line x1="65" y1="50" x2="82" y2="100" class="fig-bad"/>
+  <!-- weights at bottom far out -->
+  <rect x="28" y="98" width="10" height="18" rx="2" fill="#333" stroke="#ff5c5c" stroke-width="1" stroke-dasharray="3 2"/>
+  <rect x="82" y="98" width="10" height="18" rx="2" fill="#333" stroke="#ff5c5c" stroke-width="1" stroke-dasharray="3 2"/>
+  <!-- hips low arrow -->
+  <path d="M60 85 Q42 90 36 80" class="fig-arrow" stroke="#ff5c5c"/>
+  <text class="fig-label-bad" x="2" y="78">hips down</text>
+
+  <!-- DIVIDER -->
+  <line x1="170" y1="10" x2="170" y2="150" stroke="#2a2a2a" stroke-width="2"/>
+
+  <!-- CORRECT: RDL (right) -->
+  <text class="fig-label-good" x="182" y="18">✓ RDL (correct)</text>
+  <!-- torso hinged ~45° -->
+  <line x1="260" y1="55" x2="240" y2="95" class="fig-good"/>
+  <!-- hips back and high -->
+  <line x1="240" y1="95" x2="230" y2="125" class="fig-good"/>
+  <line x1="240" y1="95" x2="255" y2="120" class="fig-good"/>
+  <!-- soft knee -->
+  <line x1="230" y1="125" x2="228" y2="148" class="fig-good"/>
+  <line x1="255" y1="120" x2="257" y2="148" class="fig-good"/>
+  <!-- head neutral -->
+  <circle cx="268" cy="47" r="8" fill="none" stroke="#c8f060" stroke-width="1.5"/>
+  <!-- arms close to body / legs -->
+  <line x1="252" y1="68" x2="240" y2="110" class="fig-good"/>
+  <line x1="260" y1="68" x2="264" y2="112" class="fig-good"/>
+  <!-- weights skimming legs -->
+  <rect x="230" y="108" width="10" height="18" rx="2" fill="#333" stroke="#c8f060" stroke-width="1"/>
+  <rect x="258" y="110" width="10" height="18" rx="2" fill="#333" stroke="#c8f060" stroke-width="1"/>
+  <!-- hips back arrow -->
+  <path d="M240 90 Q295 75 300 60" class="fig-arrow"/>
+  <text class="fig-label-good" x="294" y="55">hips back</text>
+  <!-- weights close label -->
+  <text class="fig-label" x="182" y="148">weights skim legs</text>
+</svg>`,
+
+  lunge: `<svg viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#f0a050" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+  <rect class="fig-bg" width="300" height="160" rx="0"/>
+  <text class="fig-label-good" x="10" y="16">reverse lunge — step back</text>
+  <!-- torso upright -->
+  <line x1="130" y1="28" x2="130" y2="80" class="fig-good"/>
+  <circle cx="130" cy="20" r="8" fill="none" stroke="#c8f060" stroke-width="1.5"/>
+  <!-- front leg -->
+  <line x1="130" y1="80" x2="118" y2="115" class="fig-good"/>
+  <line x1="118" y1="115" x2="112" y2="148" class="fig-good"/>
+  <!-- back leg stepping back -->
+  <line x1="130" y1="80" x2="155" y2="110" class="fig-good"/>
+  <line x1="155" y1="110" x2="170" y2="148" class="fig-good"/>
+  <!-- back knee near floor -->
+  <circle cx="155" cy="112" r="4" fill="none" stroke="#c8f060" stroke-width="1.5"/>
+  <text class="fig-label" x="162" y="118">back knee</text>
+  <text class="fig-label" x="162" y="130">near floor</text>
+  <!-- arms with weights -->
+  <line x1="122" y1="50" x2="108" y2="90" class="fig-good"/>
+  <line x1="138" y1="50" x2="152" y2="90" class="fig-good"/>
+  <rect x="100" y="88" width="8" height="20" rx="2" fill="#333" stroke="#c8f060" stroke-width="1"/>
+  <rect x="152" y="88" width="8" height="20" rx="2" fill="#333" stroke="#c8f060" stroke-width="1"/>
+  <!-- step back arrow -->
+  <path d="M130 95 Q145 82 160 70" class="fig-arrow"/>
+  <text class="fig-label" x="162" y="68">step back</text>
+  <!-- torso upright note -->
+  <line x1="130" y1="50" x2="80" y2="50" stroke="#f0a050" stroke-width="1" stroke-dasharray="3 2"/>
+  <text class="fig-label" x="10" y="47">chest up</text>
+  <!-- front heel -->
+  <text class="fig-label" x="80" y="155">push front heel to return</text>
+</svg>`,
+
+  birddog: `<svg viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#f0a050" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+  <rect class="fig-bg" width="300" height="150" rx="0"/>
+  <text class="fig-label-good" x="10" y="16">bird-dog — on all fours</text>
+  <!-- spine flat (torso) -->
+  <line x1="90" y1="70" x2="200" y2="70" class="fig-good"/>
+  <!-- head -->
+  <circle cx="218" cy="70" r="10" fill="none" stroke="#c8f060" stroke-width="1.5"/>
+  <!-- support arm (left) down -->
+  <line x1="200" y1="70" x2="200" y2="105" class="fig-good"/>
+  <line x1="200" y1="105" x2="215" y2="118" class="fig-good"/>
+  <!-- support leg (right) down -->
+  <line x1="110" y1="70" x2="110" y2="105" class="fig-good"/>
+  <line x1="110" y1="105" x2="95" y2="118" class="fig-good"/>
+  <!-- EXTENDED: right arm forward -->
+  <line x1="200" y1="70" x2="250" y2="62" class="fig-good"/>
+  <circle cx="255" cy="61" r="3" class="fig-joint"/>
+  <path d="M225 55 Q240 50 252 58" class="fig-arrow"/>
+  <text class="fig-label" x="226" y="48">arm forward</text>
+  <!-- EXTENDED: left leg back -->
+  <line x1="110" y1="70" x2="60" y2="62" class="fig-good"/>
+  <circle cx="55" cy="61" r="3" class="fig-joint"/>
+  <path d="M85 55 Q70 50 58 58" class="fig-arrow"/>
+  <text class="fig-label" x="10" y="48">leg back</text>
+  <!-- spine neutral note -->
+  <line x1="150" y1="70" x2="150" y2="40" stroke="#f0a050" stroke-width="1" stroke-dasharray="3 2"/>
+  <text class="fig-label" x="154" y="36">spine flat</text>
+  <text class="fig-label" x="10" y="138">don't let hips rotate · think "getting long" not "getting high"</text>
+</svg>`,
+
+  deadbug: `<svg viewBox="0 0 300 155" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#f0a050" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+  <rect class="fig-bg" width="300" height="155" rx="0"/>
+  <text class="fig-label-good" x="10" y="16">dead bug — on your back</text>
+  <!-- floor line -->
+  <line x1="20" y1="100" x2="280" y2="100" stroke="#2a2a2a" stroke-width="2"/>
+  <!-- torso on floor -->
+  <rect x="80" y="85" width="130" height="16" rx="6" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <!-- head -->
+  <circle cx="222" cy="92" r="10" fill="none" stroke="#c8f060" stroke-width="1.5"/>
+  <!-- arms up -->
+  <line x1="120" y1="86" x2="105" y2="55" class="fig-good"/>
+  <line x1="175" y1="86" x2="190" y2="55" class="fig-good"/>
+  <!-- legs up at 90° -->
+  <line x1="105" y1="86" x2="95" y2="55" class="fig-good"/>
+  <line x1="95" y1="55" x2="75" y2="60" class="fig-good"/>
+  <line x1="155" y1="86" x2="165" y2="55" class="fig-good"/>
+  <line x1="165" y1="55" x2="185" y2="60" class="fig-good"/>
+  <!-- lowering: right arm back, left leg down -->
+  <line x1="190" y1="55" x2="240" y2="78" stroke="#f0a050" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <line x1="75" y1="60" x2="30" y2="92" stroke="#f0a050" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <path d="M210 52 Q228 55 238 74" class="fig-arrow"/>
+  <path d="M58 58 Q42 68 32 88" class="fig-arrow"/>
+  <!-- back flat cue -->
+  <line x1="130" y1="86" x2="130" y2="115" stroke="#ff5c5c" stroke-width="1" stroke-dasharray="3 2"/>
+  <text class="fig-label-bad" x="134" y="128">back stays</text>
+  <text class="fig-label-bad" x="134" y="140">flat on floor</text>
+  <text class="fig-label" x="10" y="152">opposite arm + leg lower together · switch sides</text>
+</svg>`,
+
+  row: `<svg viewBox="0 0 300 155" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#f0a050" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+  <rect class="fig-bg" width="300" height="155" rx="0"/>
+  <text class="fig-label-good" x="10" y="16">single-arm row</text>
+  <!-- bench/bed surface -->
+  <rect x="60" y="85" width="110" height="12" rx="4" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <!-- knee on bench -->
+  <circle cx="95" cy="85" r="7" fill="none" stroke="#c8f060" stroke-width="1.5"/>
+  <!-- support hand on bench -->
+  <circle cx="155" cy="85" r="5" fill="none" stroke="#c8f060" stroke-width="1.5"/>
+  <!-- torso flat -->
+  <line x1="95" y1="78" x2="155" y2="78" class="fig-good"/>
+  <!-- head -->
+  <circle cx="168" cy="75" r="8" fill="none" stroke="#c8f060" stroke-width="1.5"/>
+  <!-- back foot on floor -->
+  <line x1="95" y1="78" x2="75" y2="97" class="fig-good"/>
+  <line x1="75" y1="97" x2="62" y2="130" class="fig-good"/>
+  <!-- rowing arm — two positions -->
+  <!-- start: arm extended down -->
+  <line x1="115" y1="78" x2="118" y2="118" stroke="#444" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <rect x="112" y="116" width="8" height="18" rx="2" fill="#222" stroke="#444" stroke-width="1"/>
+  <!-- end: arm pulled to hip -->
+  <line x1="115" y1="78" x2="108" y2="95" class="fig-good"/>
+  <rect x="100" y="93" width="8" height="18" rx="2" fill="#333" stroke="#c8f060" stroke-width="1"/>
+  <!-- arrow showing pull direction -->
+  <path d="M118 112 Q112 100 108 96" class="fig-arrow"/>
+  <text class="fig-label" x="185" y="100">pull to hip</text>
+  <text class="fig-label" x="185" y="112">not shoulder</text>
+  <!-- full stretch label -->
+  <text class="fig-label" x="122" y="148">full stretch at bottom</text>
+</svg>`,
+
+  press: `<svg viewBox="0 0 300 155" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#f0a050" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+  <rect class="fig-bg" width="300" height="155" rx="0"/>
+  <text class="fig-label-good" x="10" y="16">shoulder press</text>
+  <!-- torso seated -->
+  <line x1="150" y1="40" x2="150" y2="100" class="fig-good"/>
+  <circle cx="150" cy="32" r="9" fill="none" stroke="#c8f060" stroke-width="1.5"/>
+  <!-- seat -->
+  <line x1="120" y1="100" x2="180" y2="100" stroke="#444" stroke-width="2"/>
+  <line x1="150" y1="100" x2="150" y2="130" class="fig-good"/>
+  <!-- WRONG elbow position (flared 90°) -->
+  <text class="fig-label-bad" x="10" y="50">✗ elbows flared</text>
+  <line x1="140" y1="65" x2="100" y2="65" class="fig-bad"/>
+  <line x1="100" y1="65" x2="95" y2="42" class="fig-bad"/>
+  <rect x="88" y="36" width="7" height="16" rx="2" fill="#222" stroke="#ff5c5c" stroke-width="1" stroke-dasharray="3 2"/>
+  <!-- GOOD elbow position (30° forward) -->
+  <text class="fig-label-good" x="190" y="50">✓ elbows forward</text>
+  <line x1="160" y1="65" x2="195" y2="58" class="fig-good"/>
+  <line x1="195" y1="58" x2="198" y2="36" class="fig-good"/>
+  <rect x="194" y="28" width="7" height="16" rx="2" fill="#333" stroke="#c8f060" stroke-width="1"/>
+  <!-- press arrow -->
+  <path d="M198 36 Q198 20 190 12" class="fig-arrow"/>
+  <text class="fig-label" x="192" y="10">press up</text>
+  <!-- core brace note -->
+  <text class="fig-label" x="30" y="148">brace core · don't arch lower back</text>
+</svg>`
+};
+
+// ── EXERCISES ─────────────────────────────────────────────────────────────
+const EXERCISES = [
+  {
+    name: "Dead bug", phase: "Warm-up · 1 of 3",
+    meta: "8 reps per side · 1 round only",
+    diagram: 'deadbug',
+    instruction: "Lie on your back, arms pointing up, knees at 90° in the air.\n\nSlowly lower your right arm behind your head and left leg toward the floor simultaneously.\n\nCritical: lower back must stay pressed into the floor the entire time. If it lifts, you've gone too far. Return and switch sides.",
+    sets: 1, isWarmup: true, isPlank: false,
+  },
+  {
+    name: "Bird-dog", phase: "Warm-up · 2 of 3",
+    meta: "8 reps per side · hold 3 sec · 1 round",
+    diagram: 'birddog',
+    instruction: "On all fours — hands under shoulders, knees under hips.\n\nReach right arm forward and left leg back simultaneously. Hold 3 seconds.\n\nDon't arch your back or lift your leg too high. Think getting long, not getting high. Keep hips level. Switch sides.",
+    sets: 1, isWarmup: true, isPlank: false,
+  },
+  {
+    name: "Glute bridge", phase: "Warm-up · 3 of 3",
+    meta: "15 reps · hold 2 sec at top · 1 round",
+    diagram: null,
+    instruction: "Lie on your back, knees bent, feet flat on the floor hip-width apart.\n\nDrive through your heels and lift your hips toward the ceiling. Squeeze your glutes hard at the top and hold for 2 seconds.\n\nLower slowly. This is the most important warm-up move for your back.",
+    sets: 1, isWarmup: true, isPlank: false,
+  },
+  {
+    name: "Romanian deadlift", phase: "Main · 1 of 6",
+    meta: "8–12 reps · 3 sets · ~10kg each",
+    diagram: 'rdl',
+    instruction: "Stand holding both dumbbells in front of your thighs.\n\nHinge at the hips — push your hips BACK (not down). Slight knee bend. Weights slide close to your legs, almost skimming them.\n\nStop when you feel the hamstring stretch. Drive hips forward to stand. Cue on the way up: imagine zipping up your fly.",
+    sets: 3, isWarmup: false, isPlank: false,
+  },
+  {
+    name: "Reverse lunge", phase: "Main · 2 of 6",
+    meta: "8–12 reps per leg · 3 sets",
+    diagram: 'lunge',
+    instruction: "Hold a dumbbell in each hand, standing tall.\n\nStep one foot BACK (not forward) and lower your back knee toward the floor. Keep your torso upright — don't lean forward.\n\nPush through the front heel to return. Alternate legs each rep.",
+    sets: 3, isWarmup: false, isPlank: false,
+  },
+  {
+    name: "Single-arm row", phase: "Main · 3 of 6",
+    meta: "8–12 reps per arm · 3 sets",
+    diagram: 'row',
+    instruction: "One knee and same-side hand on a bed or bench. Other foot flat on the floor.\n\nArm hangs straight down — get a full stretch at the bottom.\n\nRow the dumbbell to your hip (not your shoulder). Pause at the top. Lower slowly. All reps on one side, then switch.",
+    sets: 3, isWarmup: false, isPlank: false,
+  },
+  {
+    name: "Push-up", phase: "Main · 4 of 6",
+    meta: "8–12 reps · 3 sets",
+    diagram: null,
+    instruction: "Floor push-ups if manageable. Incline on a sturdy table if not. Or flat dumbbell press on the floor — all three hit the same muscles.\n\nBody is a straight board from head to heels. Lower chest, pause, push back up.\n\nElbows at ~45° from your body — not flared to 90°.",
+    sets: 3, isWarmup: false, isPlank: false,
+  },
+  {
+    name: "Shoulder press", phase: "Main · 5 of 6",
+    meta: "8–12 reps · 3 sets",
+    diagram: 'press',
+    instruction: "Seated or standing. Dumbbells at shoulder height.\n\nPress straight up until arms are nearly extended. Keep elbows about 30° in front of your body — not flared to 90°.\n\nLower with control. Brace your core — don't arch your lower back.",
+    sets: 3, isWarmup: false, isPlank: false,
+  },
+  {
+    name: "Plank", phase: "Main · 6 of 6",
+    meta: "30–45 sec hold · 3 sets",
+    diagram: null,
+    instruction: "On hands or elbows. Body is a straight line from head to heels.\n\nSqueeze glutes AND abs at the same time. Don't let hips sag or pike.\n\n30 seconds of quality beats 60 seconds of sagging.",
+    sets: 3, isWarmup: false, isPlank: true,
+  },
+];
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let currentExIdx = 0, setsCompleted = [], workoutStartTime = null;
+let restTimer = null, plankTimer = null;
+let plankSeconds = 0, plankRunning = false, plankTarget = 40;
+let totalSetsCompleted = 0;
+let audioCtx = null;
+
+// ── AUDIO ──────────────────────────────────────────────────────────────────
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function beep(freq = 880, dur = 0.12, vol = 0.4) {
+  try {
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+
+function beepDone() {
+  // three ascending tones
+  beep(660, 0.1, 0.3);
+  setTimeout(() => beep(880, 0.1, 0.3), 120);
+  setTimeout(() => beep(1100, 0.2, 0.4), 240);
+}
+
+function beepTick() { beep(440, 0.06, 0.15); }
+
+// ── SCREENS ────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startWorkout() {
+  getAudio(); // unlock audio context on user gesture
+  currentExIdx = 0;
+  setsCompleted = EXERCISES.map(() => 0);
+  workoutStartTime = Date.now();
+  totalSetsCompleted = 0;
+  showScreen('workout');
+  renderExercise();
+}
+
+function goHome() {
+  clearTimers();
+  document.getElementById('restOverlay').classList.remove('active');
+  showScreen('home');
+}
+
+function clearTimers() {
+  if (restTimer) { clearInterval(restTimer); restTimer = null; }
+  if (plankTimer) { clearInterval(plankTimer); plankTimer = null; }
+  plankRunning = false;
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
+function renderExercise() {
+  clearTimers();
+  document.getElementById('restOverlay').classList.remove('active');
+  const ex = EXERCISES[currentExIdx];
+  const pct = (currentExIdx / EXERCISES.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = (currentExIdx + 1) + ' / ' + EXERCISES.length;
+
+  const diagramHTML = ex.diagram && DIAGRAMS[ex.diagram]
+    ? `<div class="ex-diagram">${DIAGRAMS[ex.diagram]}</div>` : '';
+
+  const stage = document.getElementById('exerciseStage');
+
+  if (ex.isPlank) {
+    plankSeconds = plankTarget; plankRunning = false;
+    stage.innerHTML = `
+      <div class="ex-phase">${ex.phase}</div>
+      <div class="ex-title">${ex.name}</div>
+      <div class="ex-meta">${ex.meta}</div>
+      <div class="ex-scroll-area">
+        <div class="ex-instruction">${ex.instruction}</div>
+        <div class="set-tracker">
+          <div class="set-tracker-label">Sets</div>
+          <div class="set-dots" id="setDots"></div>
+        </div>
+      </div>
+      <div class="plank-timer-wrap">
+        <div class="timer-ring">
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <circle class="timer-ring-bg" cx="90" cy="90" r="78"/>
+            <circle class="timer-ring-fill" id="plankArc" cx="90" cy="90" r="78" stroke-dasharray="490.1" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-center">
+            <div class="timer-num" id="plankNum">${plankTarget}</div>
+            <div class="timer-label">seconds</div>
+          </div>
+        </div>
+        <div class="timer-controls">
+          <button class="timer-btn" onclick="resetPlank()">Reset</button>
+          <button class="timer-btn primary" id="plankStartBtn" onclick="togglePlank()">Start</button>
+        </div>
+        <div class="timer-target-row">
+          <div class="timer-target ${plankTarget===30?'selected':''}" onclick="setPlankTarget(30,this)">30s</div>
+          <div class="timer-target ${plankTarget===40?'selected':''}" onclick="setPlankTarget(40,this)">40s</div>
+          <div class="timer-target ${plankTarget===45?'selected':''}" onclick="setPlankTarget(45,this)">45s</div>
+          <div class="timer-target ${plankTarget===60?'selected':''}" onclick="setPlankTarget(60,this)">60s</div>
+        </div>
+      </div>`;
+    renderSetDots(ex);
+    document.getElementById('actionRow').innerHTML = `
+      <button class="action-btn secondary" onclick="prevExercise()">← Back</button>
+      <button class="action-btn primary" id="mainActionBtn"
+        onclick="nextExercise()"
+        ${setsCompleted[currentExIdx] >= ex.sets ? '' : 'disabled style="opacity:.4"'}>
+        ${currentExIdx === EXERCISES.length-1 ? 'Finish 🎉' : 'Next →'}
+      </button>`;
+  } else {
+    stage.innerHTML = `
+      <div class="ex-phase">${ex.phase}</div>
+      <div class="ex-title">${ex.name}</div>
+      <div class="ex-meta">${ex.meta}</div>
+      ${diagramHTML}
+      <div class="ex-scroll-area">
+        <div class="ex-instruction">${ex.instruction}</div>
+        <div class="set-tracker">
+          <div class="set-tracker-label">Sets</div>
+          <div class="set-dots" id="setDots"></div>
+        </div>
+      </div>`;
+    renderSetDots(ex);
+    document.getElementById('actionRow').innerHTML = `
+      <button class="action-btn secondary" onclick="prevExercise()">← Back</button>
+      <button class="action-btn primary" id="mainActionBtn"
+        onclick="${ex.isWarmup || setsCompleted[currentExIdx] >= ex.sets ? 'nextExercise()' : 'completeSet()'}">
+        ${getActionLabel(ex)}
+      </button>`;
+  }
+}
+
+function getActionLabel(ex) {
+  if (ex.isWarmup) return 'Done → Next';
+  if (setsCompleted[currentExIdx] >= ex.sets)
+    return currentExIdx === EXERCISES.length-1 ? 'Finish 🎉' : 'Next exercise →';
+  return `Done · Set ${setsCompleted[currentExIdx]+1} of ${ex.sets}`;
+}
+
+function renderSetDots(ex) {
+  const dots = document.getElementById('setDots');
+  if (!dots) return;
+  if (ex.isWarmup) {
+    dots.innerHTML = `<div class="set-dot ${setsCompleted[currentExIdx]>0?'done':'active'}">1</div>`;
+    return;
+  }
+  dots.innerHTML = Array.from({length: ex.sets}, (_, i) => {
+    const done = i < setsCompleted[currentExIdx];
+    const active = i === setsCompleted[currentExIdx];
+    return `<div class="set-dot ${done?'done':''} ${active?'active':''}">${done?'✓':i+1}</div>`;
+  }).join('');
+}
+
+// ── FLOW ───────────────────────────────────────────────────────────────────
+function completeSet() {
+  beepDone();
+  setsCompleted[currentExIdx]++;
+  totalSetsCompleted++;
+  const ex = EXERCISES[currentExIdx];
+  if (setsCompleted[currentExIdx] >= ex.sets) {
+    nextExercise();
+  } else {
+    startRest(ex.name);
+  }
+}
+
+function nextExercise() {
+  if (currentExIdx >= EXERCISES.length-1) { finishWorkout(); return; }
+  const wasWarmup = EXERCISES[currentExIdx].isWarmup;
+  currentExIdx++;
+  const isWarmup = EXERCISES[currentExIdx].isWarmup;
+  if (!wasWarmup && !isWarmup) {
+    startRest(EXERCISES[currentExIdx].name, true);
+  } else {
+    renderExercise();
+  }
+}
+
+function prevExercise() {
+  if (currentExIdx === 0) return;
+  clearTimers();
+  document.getElementById('restOverlay').classList.remove('active');
+  currentExIdx--;
+  renderExercise();
+}
+
+// ── REST ───────────────────────────────────────────────────────────────────
+function startRest(nextName) {
+  clearTimers();
+  document.getElementById('restNextName').textContent = nextName;
+  document.getElementById('restOverlay').classList.add('active');
+  const TOTAL = 60, CIRC = 326.7;
+  let remaining = TOTAL;
+  const numEl = document.getElementById('restNum');
+  const arc = document.getElementById('restArc');
+  numEl.textContent = remaining;
+  arc.style.strokeDashoffset = '0';
+  restTimer = setInterval(() => {
+    remaining--;
+    numEl.textContent = remaining;
+    arc.style.strokeDashoffset = CIRC * (1 - remaining/TOTAL);
+    if (remaining <= 3) beepTick();
+    if (remaining <= 0) {
+      clearInterval(restTimer);
+      beepDone();
+      document.getElementById('restOverlay').classList.remove('active');
+      renderExercise();
+    }
+  }, 1000);
+}
+
+function skipRest() {
+  clearInterval(restTimer);
+  document.getElementById('restOverlay').classList.remove('active');
+  renderExercise();
+}
+
+// ── PLANK TIMER ────────────────────────────────────────────────────────────
+function togglePlank() {
+  plankRunning ? pausePlank() : startPlankTimer();
+}
+
+function startPlankTimer() {
+  plankRunning = true;
+  document.getElementById('plankStartBtn').textContent = 'Pause';
+  const CIRC = 490.1, total = plankTarget;
+  plankTimer = setInterval(() => {
+    plankSeconds--;
+    const el = document.getElementById('plankNum');
+    const arc = document.getElementById('plankArc');
+    if (el) el.textContent = Math.max(0, plankSeconds);
+    if (arc) {
+      arc.style.strokeDashoffset = CIRC * (1 - plankSeconds/total);
+      if (plankSeconds <= 10) arc.classList.add('danger');
+    }
+    if (plankSeconds <= 3 && plankSeconds > 0) beepTick();
+    if (plankSeconds <= 0) {
+      clearInterval(plankTimer); plankRunning = false;
+      beepDone();
+      setsCompleted[currentExIdx]++;
+      totalSetsCompleted++;
+      renderSetDots(EXERCISES[currentExIdx]);
+      const btn = document.getElementById('mainActionBtn');
+      if (btn) {
+        btn.removeAttribute('disabled'); btn.style.opacity = '1';
+        btn.textContent = currentExIdx === EXERCISES.length-1 ? 'Finish 🎉' : 'Next →';
+        btn.onclick = () => nextExercise();
+      }
+      const ex = EXERCISES[currentExIdx];
+      if (setsCompleted[currentExIdx] < ex.sets) {
+        setTimeout(() => { plankSeconds = plankTarget; startRest(ex.name); }, 800);
+      }
+    }
+  }, 1000);
+}
+
+function pausePlank() {
+  plankRunning = false; clearInterval(plankTimer);
+  document.getElementById('plankStartBtn').textContent = 'Resume';
+}
+
+function resetPlank() {
+  clearInterval(plankTimer); plankRunning = false;
+  plankSeconds = plankTarget;
+  const el = document.getElementById('plankNum');
+  const arc = document.getElementById('plankArc');
+  const btn = document.getElementById('plankStartBtn');
+  if (el) el.textContent = plankTarget;
+  if (btn) btn.textContent = 'Start';
+  if (arc) { arc.style.strokeDashoffset = '0'; arc.classList.remove('danger'); }
+}
+
+function setPlankTarget(t, el) {
+  plankTarget = t; resetPlank();
+  document.querySelectorAll('.timer-target').forEach(e => e.classList.remove('selected'));
+  if (el) el.classList.add('selected');
+}
+
+// ── FINISH ─────────────────────────────────────────────────────────────────
+function finishWorkout() {
+  clearTimers();
+  beepDone();
+  const elapsed = Math.round((Date.now() - workoutStartTime) / 60000);
+  document.getElementById('statSets').textContent = totalSetsCompleted;
+  document.getElementById('statTime').textContent = elapsed;
+  showScreen('done');
+}
+
+// ── SERVICE WORKER ─────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
