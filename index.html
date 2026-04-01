@@ -522,9 +522,15 @@ function getAudio() {
   return audioCtx;
 }
 
-function beep(freq = 880, dur = 0.12, vol = 0.4) {
+async function ensureAudio() {
+  const ctx = getAudio();
+  if (ctx.state === 'suspended') await ctx.resume();
+  return ctx;
+}
+
+async function beep(freq = 880, dur = 0.12, vol = 0.4) {
   try {
-    const ctx = getAudio();
+    const ctx = await ensureAudio();
     const o = ctx.createOscillator();
     const g = ctx.createGain();
     o.connect(g); g.connect(ctx.destination);
@@ -537,7 +543,6 @@ function beep(freq = 880, dur = 0.12, vol = 0.4) {
 }
 
 function beepDone() {
-  // three ascending tones
   beep(660, 0.1, 0.3);
   setTimeout(() => beep(880, 0.1, 0.3), 120);
   setTimeout(() => beep(1100, 0.2, 0.4), 240);
@@ -551,8 +556,8 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 
-function startWorkout() {
-  getAudio(); // unlock audio context on user gesture
+async function startWorkout() {
+  await ensureAudio(); // unlock audio context on user gesture — critical for iOS
   currentExIdx = 0;
   setsCompleted = EXERCISES.map(() => 0);
   workoutStartTime = Date.now();
